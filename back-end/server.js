@@ -1,19 +1,16 @@
-const express = require('express');
-const userRoutes = require('./routes/UserRoute');
-const { sequelize } = require('./models/index');
+const express = require("express");
+const cors = require("cors");
+const userController = require("./controllers/UserController");
 
 const app = express();
-
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    preflightContinue: true,
+  })
+);
 app.use(express.json());
 
-app.use('/api', userRoutes);
+app.use("/users", userController);
 
-sequelize.authenticate()
-  .then(() => console.log('Database connected successfully!'))
-  .catch((err) => console.error('Error connecting to the database:', err));
-
-
-const PORT = 8585;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+app.listen(8585);

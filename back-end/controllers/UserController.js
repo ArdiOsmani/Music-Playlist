@@ -1,75 +1,54 @@
-const User = require('../models/User');
+const router = require("express").Router();
+const userRepository = require("../models/User");
 
+router.get("/:id", async (req, res) => {
+  const id = req.params.id;
 
-const createUser = async (req, res) => {
+  const user = await userRepository.getUserById(+id);
   try {
-    const { username, password, favoriteMusicGenres } = req.body;
-    const user = await User.create({ username, password, favoriteMusicGenres });
-    res.status(201).json(user);
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("Error getting user:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error getting user",
+    });
   }
-};
+});
 
-
-const getAllUsers = async (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const users = await User.findAll();
-    res.status(200).json(users);
+    const users = await userRepository.getAllUsers();
+    res.status(200).json({
+      success: true,
+      data: users,
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error fetching users:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching users",
+    });
   }
-};
+});
 
-
-const getUserById = async (req, res) => {
+router.post("/", async (req, res) => {
+  const userData = req.body;
+  const newUser = await userRepository.addUser(userData);
   try {
-    const { id } = req.params;
-    const user = await User.findByPk(id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    res.status(200).json(user);
+    res.status(201).json({
+      success: true,
+      data: newUser,
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Error adding User",
+    });
   }
-};
+});
 
-
-const updateUser = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { username, password, favoriteMusicGenres } = req.body;
-    const user = await User.findByPk(id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    await user.update({ username, password, favoriteMusicGenres });
-    res.status(200).json(user);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
-
-
-const deleteUser = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const user = await User.findByPk(id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    await user.destroy();
-    res.status(204).send();
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-module.exports = {
-  createUser,
-  getAllUsers,
-  getUserById,
-  updateUser,
-  deleteUser,
-};
+module.exports = router;

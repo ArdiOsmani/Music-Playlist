@@ -1,40 +1,65 @@
-const { Model, DataTypes } = require('sequelize');
+const { DataTypes } = require("sequelize");
+const sequelize = require("../database/db");
+const bcrypt = require("bcrypt");
 
-module.exports = (sequelize) => {
-  class User extends Model {}
-
-  User.init(
-    {
-      id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-      },
-      username: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
-      },
-      password: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      favoriteMusicGenres: {
-        type: DataTypes.ARRAY(DataTypes.INTEGER),
-        defaultValue: [],
-      },
-      role: {
-        type: DataTypes.STRING,
-        defaultValue: 'user',
-      },
+const User = sequelize.define(
+  "users",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
     },
-    {
-      sequelize,
-      modelName: 'User',
-      tableName: 'users',
-      timestamps: true,
-    }
-  );
+    name: {
+      type: DataTypes.STRING,
+    },
+    surname: {
+      type: DataTypes.STRING,
+    },
+    username: {
+      type: DataTypes.STRING,
+    },
+    email: {
+      type: DataTypes.STRING,
+    },
+    password: {
+      type: DataTypes.STRING,
+    },
+  },
+  {
+    timestamps: false,
+  }
+);
 
-  return User;
+exports.getAllUsers = async () => {
+  try {
+    const users = await User.findAll();
+    return users;
+  } catch (err) {
+    console.error("Error fetching users: ", err);
+  }
+};
+
+exports.getUserById = async (id) => {
+  try {
+    const user = await User.findByPk(id);
+    if (!user) return null;
+    return user;
+  } catch (err) {
+    console.error("Error finding User: ", err);
+  }
+};
+
+exports.addUser = async (userData) => {
+  try {
+    const hashedPaswword = await bcrypt.hash(userData.password, 10);
+
+    const newUser = await User.create({
+      ...userData,
+      password: hashedPaswword,
+    });
+    return newUser;
+  } catch (error) {
+    console.error("Error adding user: ", error);
+  }
 };
