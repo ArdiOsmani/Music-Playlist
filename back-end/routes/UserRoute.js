@@ -1,4 +1,4 @@
-const express = require('express');
+const router = require('express').Router();
 const {
   createUser,
   getAllUsers,
@@ -6,8 +6,6 @@ const {
   updateUser,
   deleteUser,
 } = require('../controllers/UserController');
-
-const router = express.Router();
 
 router.post('/users', createUser);
 router.get('/users', getAllUsers);
