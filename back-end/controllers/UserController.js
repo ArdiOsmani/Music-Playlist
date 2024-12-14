@@ -1,6 +1,7 @@
 const User = require('../models/User');
+const bcrypt = require('bcryptjs');
 
-
+// Create a new user
 exports.createUser = async (req, res) => {
   try {
     const { username, password, role } = req.body;
@@ -18,14 +19,12 @@ exports.createUser = async (req, res) => {
       role: role || 'user' 
     });
 
-    // Remove password from response
-    const userResponse = { 
+    // Return user without password
+    res.status(201).json({ 
       id: newUser.id, 
       username: newUser.username, 
       role: newUser.role 
-    };
-
-    res.status(201).json(userResponse);
+    });
   } catch (error) {
     res.status(500).json({ 
       message: 'Error creating user', 
@@ -34,7 +33,7 @@ exports.createUser = async (req, res) => {
   }
 };
 
-
+// Get all users
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll({
@@ -49,7 +48,7 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-
+// Get user by ID
 exports.getUserById = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id, {
@@ -83,20 +82,24 @@ exports.updateUser = async (req, res) => {
 
     // Update user fields
     if (username) user.username = username;
-    if (password) user.password = password;
+    
+    // Only hash and update password if provided
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+    }
+    
     if (role) user.role = role;
 
     // Save updated user
     await user.save();
 
     // Return updated user without password
-    const updatedUser = { 
+    res.status(200).json({ 
       id: user.id, 
       username: user.username, 
       role: user.role 
-    };
-
-    res.status(200).json(updatedUser);
+    });
   } catch (error) {
     res.status(500).json({ 
       message: 'Error updating user', 
@@ -105,12 +108,12 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-
-
+// Delete user
 exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Find the user
     const user = await User.findByPk(id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -123,6 +126,37 @@ exports.deleteUser = async (req, res) => {
   } catch (error) {
     res.status(500).json({ 
       message: 'Error deleting user', 
+      error: error.message 
+    });
+  }
+};
+
+// Login Controller (Optional but recommended)
+exports.loginUser = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    // Find the user
+    const user = await User.findOne({ where: { username } });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // Return user without password
+    res.status(200).json({ 
+      id: user.id, 
+      username: user.username, 
+      role: user.role 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Login error', 
       error: error.message 
     });
   }

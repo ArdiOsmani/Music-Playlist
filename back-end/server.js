@@ -1,23 +1,30 @@
 const express = require('express');
 const sequelize = require('./config/database');
-
-// Import models
+const cors = require('cors');
 const User = require('./models/User');
-
-// Import routes
 const userRoutes = require('./routes/UserRoute');
-
 const app = express();
-const PORT = 8585;
+const PORT = process.env.PORT || 8585;
 
-// Middleware
+
+
+
+const corsOptions = {
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+
 app.use('/users', userRoutes);
 
-// Sync database
+
+
 sequelize.sync({ force: false })
   .then(() => {
     console.log('Database synced');
