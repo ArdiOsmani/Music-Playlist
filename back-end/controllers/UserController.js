@@ -1,54 +1,129 @@
-const router = require("express").Router();
-const userRepository = require("../models/User");
+const User = require('../models/User');
 
-router.get("/:id", async (req, res) => {
-  const id = req.params.id;
 
-  const user = await userRepository.getUserById(+id);
+exports.createUser = async (req, res) => {
   try {
-    res.status(200).json({
-      success: true,
-      data: user,
+    const { username, password, role } = req.body;
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({ where: { username } });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username already exists' });
+    }
+
+    // Create new user
+    const newUser = await User.create({ 
+      username, 
+      password, 
+      role: role || 'user' 
     });
+
+    // Remove password from response
+    const userResponse = { 
+      id: newUser.id, 
+      username: newUser.username, 
+      role: newUser.role 
+    };
+
+    res.status(201).json(userResponse);
   } catch (error) {
-    console.error("Error getting user:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error getting user",
+    res.status(500).json({ 
+      message: 'Error creating user', 
+      error: error.message 
     });
   }
-});
+};
 
-router.get("/", async (req, res) => {
+
+exports.getAllUsers = async (req, res) => {
   try {
-    const users = await userRepository.getAllUsers();
-    res.status(200).json({
-      success: true,
-      data: users,
+    const users = await User.findAll({
+      attributes: ['id', 'username', 'role']
     });
+    res.status(200).json(users);
   } catch (error) {
-    console.error("Error fetching users:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error fetching users",
+    res.status(500).json({ 
+      message: 'Error fetching users', 
+      error: error.message 
     });
   }
-});
+};
 
-router.post("/", async (req, res) => {
-  const userData = req.body;
-  const newUser = await userRepository.addUser(userData);
+
+exports.getUserById = async (req, res) => {
   try {
-    res.status(201).json({
-      success: true,
-      data: newUser,
+    const user = await User.findByPk(req.params.id, {
+      attributes: ['id', 'username', 'role']
     });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error adding User",
+    res.status(500).json({ 
+      message: 'Error fetching user', 
+      error: error.message 
     });
   }
-});
+};
 
-module.exports = router;
+// Update user
+exports.updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username, password, role } = req.body;
+
+    // Find the user
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update user fields
+    if (username) user.username = username;
+    if (password) user.password = password;
+    if (role) user.role = role;
+
+    // Save updated user
+    await user.save();
+
+    // Return updated user without password
+    const updatedUser = { 
+      id: user.id, 
+      username: user.username, 
+      role: user.role 
+    };
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error updating user', 
+      error: error.message 
+    });
+  }
+};
+
+
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Delete the user
+    await user.destroy();
+
+    res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error deleting user', 
+      error: error.message 
+    });
+  }
+};
