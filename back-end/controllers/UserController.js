@@ -1,7 +1,8 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-// Create a new user
+
 exports.createUser = async (req, res) => {
   try {
     const { username, password, role } = req.body;
@@ -33,7 +34,7 @@ exports.createUser = async (req, res) => {
   }
 };
 
-// Get all users
+
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll({
@@ -48,7 +49,7 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-// Get user by ID
+
 exports.getUserById = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id, {
@@ -68,7 +69,6 @@ exports.getUserById = async (req, res) => {
   }
 };
 
-// Update user
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -108,7 +108,7 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// Delete user
+
 exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -131,33 +131,47 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-// Login Controller (Optional but recommended)
 exports.loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Find the user
+
     const user = await User.findOne({ where: { username } });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check password
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Return user without password
-    res.status(200).json({ 
-      id: user.id, 
-      username: user.username, 
-      role: user.role 
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        username: user.username,
+        role: user.role
+      },
+      process.env.JWT_SECRET || 'musicplaylist',
+      {
+        expiresIn: '1h', 
+        issuer: 'MusicPlaylist',
+        audience: 'http://localhost:5173'
+      }
+    );
+
+    res.status(200).json({
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      token: `${token}` 
     });
   } catch (error) {
-    res.status(500).json({ 
-      message: 'Login error', 
-      error: error.message 
+    res.status(500).json({
+      message: 'Login error',
+      error: error.message
     });
   }
 };

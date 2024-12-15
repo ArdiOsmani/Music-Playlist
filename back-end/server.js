@@ -1,7 +1,7 @@
 const express = require('express');
+const passport = require('./config/passportJWT');
 const sequelize = require('./config/database');
 const cors = require('cors');
-const User = require('./models/User');
 const userRoutes = require('./routes/UserRoute');
 const app = express();
 const PORT = process.env.PORT || 8585;
@@ -15,7 +15,7 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization']
 };
 
-
+app.use(passport.initialize());
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
