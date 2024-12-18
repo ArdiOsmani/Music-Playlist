@@ -12,12 +12,7 @@ router.get('/', userController.getAllUsers);
 
 router.get('/:id', userController.getUserById);
 
-router.put('/users/:id', requireAuth, (req, res, next) => {
-    if (req.user.id !== parseInt(req.params.id) && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
-    next();
-  }, userController.updateUser);
+router.put('/users/:id', requireAuth, requireRole(['admin']), userController.updateUser);
 
 
 

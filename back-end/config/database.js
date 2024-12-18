@@ -2,7 +2,7 @@ const { Sequelize } = require('sequelize');
 
 const sequelize = new Sequelize('musicplaylist', 'root', '', {
   host: 'localhost',
-  port: 3307,
+  port: 3308,
   dialect: 'mysql',
   logging: false,
   define: {
