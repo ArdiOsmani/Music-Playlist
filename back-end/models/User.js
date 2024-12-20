@@ -24,11 +24,10 @@ const User = sequelize.define('User', {
     }
   },
   role: {
-    type: DataTypes.ENUM('user', 'studio', 'admin'),
+    type: DataTypes.ENUM('admin', 'artist', 'user'),
     defaultValue: 'user'
   }
 }, {
-  // Hooks for password hashing
   hooks: {
     beforeCreate: async (user) => {
       const salt = await bcrypt.genSalt(10);
@@ -43,7 +42,6 @@ const User = sequelize.define('User', {
   }
 });
 
-// Method to compare password
 User.prototype.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };

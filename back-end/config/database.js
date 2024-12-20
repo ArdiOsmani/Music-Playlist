@@ -2,14 +2,13 @@ const { Sequelize } = require('sequelize');
 
 const sequelize = new Sequelize('musicplaylist', 'root', '', {
   host: 'localhost',
-  port: 3308,
+  port: 3307,
   dialect: 'mysql',
   logging: false,
   define: {
     timestamps: true
   }
 });
-
 
 async function testConnection() {
   try {
@@ -20,6 +19,7 @@ async function testConnection() {
   }
 }
 
+// Remove the automatic seeding from here
 testConnection();
 
 module.exports = sequelize;
