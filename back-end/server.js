@@ -1,6 +1,6 @@
 const express = require('express');
 const passport = require('./config/passportJWT');
-const { sequelize } = require('./models'); // Update this line
+const { sequelize } = require('./models');
 const cors = require('cors');
 const userRoutes = require('./routes/UserRoute');
 const musicRoutes = require('./routes/MusicRoute');
@@ -22,7 +22,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/users', userRoutes);
 app.use('/music', musicRoutes);
 
-// Initialize database
 sequelize.sync({ force: true })
   .then(async () => {
     console.log('Database synced');

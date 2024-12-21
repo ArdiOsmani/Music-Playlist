@@ -27,7 +27,6 @@ function Login() {
     e.preventDefault();
     setError("");
 
-    // Basic validation
     if (!loginUsername || !loginPassword) {
       setError("Please enter both username and password");
       return;
@@ -48,7 +47,6 @@ function Login() {
       const data = await response.json();
 
       if (response.ok) {
-        // Store user data and token
         storageService.setUserData({
           id: data.id,
           username: data.username,
@@ -72,13 +70,12 @@ function Login() {
     e.preventDefault();
     setError('');
 
-    // Basic validation
+
     if (!signupUsername || !signupPassword) {
       setError('Please enter both username and password');
       return;
     }
 
-    // Optional: Add password strength check
     if (signupPassword.length < 6) {
       setError('Password must be at least 6 characters long');
       return;

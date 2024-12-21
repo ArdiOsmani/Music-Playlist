@@ -1,4 +1,3 @@
-// models/music.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -8,7 +7,7 @@ const Music = sequelize.define('Music', {
     primaryKey: true,
     autoIncrement: true
   },
-  name: {  // Add this new field
+  name: { 
     type: DataTypes.STRING,
     allowNull: false
   },

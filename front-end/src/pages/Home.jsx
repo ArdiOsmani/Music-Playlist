@@ -7,7 +7,7 @@ export default function Home() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Function to extract YouTube video ID from URL
+
     const getYouTubeID = (url) => {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
         const match = url.match(regExp);
@@ -15,7 +15,7 @@ export default function Home() {
     };
 
     useEffect(() => {
-        // Load YouTube IFrame API
+
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         const firstScriptTag = document.getElementsByTagName('script')[0];

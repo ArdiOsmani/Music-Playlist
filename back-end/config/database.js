@@ -25,7 +25,6 @@ async function testConnection() {
   }
 }
 
-// Remove the automatic seeding from here
 testConnection();
 
 module.exports = sequelize;

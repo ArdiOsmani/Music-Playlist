@@ -1,6 +1,6 @@
 .home-container {
     background-color: #1a1a1a;
-    min-height: calc(100vh - 70px); /* Adjust for header height */
+    min-height: calc(100vh - 70px); 
     padding: 20px;
     margin-top: 0;
 }
@@ -29,7 +29,7 @@
 .video-container {
     position: relative;
     width: 100%;
-    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    padding-bottom: 56.25%;
     margin-bottom: 15px;
     
 }
