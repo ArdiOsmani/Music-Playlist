@@ -1,0 +1,42 @@
+.nav-sidebar {
+    width: 240px;
+    height: 100vh;
+    background-color: #111;
+    padding: 20px;
+    position: fixed;
+    left: 0;
+    overflow-y: auto;
+}
+
+.nav-section {
+    margin-bottom: 30px;
+}
+
+.nav-section h3 {
+    color: #808080;
+    font-size: 14px;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+}
+
+.nav-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.nav-section li {
+    color: #fff;
+    padding: 10px 15px;
+    margin: 5px 0;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.nav-section li:hover {
+    background-color: #282828;
+}
+
+.nav-section li.active {
+    background-color: #282828;
+}

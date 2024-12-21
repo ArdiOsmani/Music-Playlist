@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import Header from './Header';
+import Navigation from '../components/Navigation';
 import './Home.css';
 
 export default function Home() {
     const [music, setMusic] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
 
     const getYouTubeID = (url) => {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -15,7 +15,6 @@ export default function Home() {
     };
 
     useEffect(() => {
-
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         const firstScriptTag = document.getElementsByTagName('script')[0];
@@ -39,36 +38,51 @@ export default function Home() {
         fetchMusic();
     }, []);
 
+    const renderMusicRow = (title, songs) => (
+        <div className="music-row">
+            <h2>{title}</h2>
+            <div className="music-grid">
+                {songs.map((song) => (
+                    <div key={song.id} className="music-card">
+                        <div className="video-container">
+                            <iframe
+                                width="280"
+                                height="157"
+                                src={`https://www.youtube.com/embed/${getYouTubeID(song.youtube_link)}`}
+                                title={song.name}
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                            />
+                        </div>
+                        <h3>{song.name}</h3>
+                        <p>Artist: {song.Artist?.username || 'Unknown'}</p>
+                        <p>Genre: {song.Genre?.name || 'Unknown'}</p>
+                        <p>Likes: {song.likes}</p>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
     if (loading) return <div className="home-container">Loading...</div>;
     if (error) return <div className="home-container">Error: {error}</div>;
 
+    const newReleases = music.slice(-4);
+    const mostLiked = [...music].sort((a, b) => b.likes - a.likes).slice(0, 4);
+    const allSongs = music;
+
     return (
-        <>
-            <Header />
-            <div className="home-container">
-                <h1>Music Library</h1>
-                <div className="music-grid">
-                    {music.map((song) => (
-                        <div key={song.id} className="music-card">
-                            <h3>{song.name}</h3>
-                            <div className="video-container">
-                                <iframe
-                                    width="280"
-                                    height="157"
-                                    src={`https://www.youtube.com/embed/${getYouTubeID(song.youtube_link)}`}
-                                    title={song.name}
-                                    frameBorder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                />
-                            </div>
-                            <p>Artist: {song.Artist?.username || 'Unknown'}</p>
-                            <p>Genre: {song.Genre?.name || 'Unknown'}</p>
-                            <p>Likes: {song.likes}</p>
-                        </div>
-                    ))}
-                </div>
+        <div>
+            <div className="main-container">
+                <Navigation />
+                <main className="content">
+                    <Header />
+                    {renderMusicRow('New Releases', newReleases)}
+                    {renderMusicRow('Most Liked', mostLiked)}
+                    {renderMusicRow('All Songs', allSongs)}
+                </main>
             </div>
-        </>
+        </div>
     );
 }

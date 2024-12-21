@@ -110,6 +110,7 @@ function Login() {
   };
 
   return (
+    <div className='login-container'>
     <div className={`form-structor ${isLoginView ? '' : 'slide-up'}`}>
       <div className={`signup ${isLoginView ? '' : 'slide-up'}`}>
         <h2
@@ -178,6 +179,7 @@ function Login() {
           </button>
         </div>
       </div>
+    </div>
     </div>
   );
 }
