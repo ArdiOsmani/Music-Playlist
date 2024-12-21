@@ -7,6 +7,10 @@ const Playlist = sequelize.define('Playlist', {
     primaryKey: true,
     autoIncrement: true
   },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
   user_id: {
     type: DataTypes.INTEGER,
     allowNull: false

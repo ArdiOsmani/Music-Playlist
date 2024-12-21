@@ -5,6 +5,7 @@ const cors = require('cors');
 const userRoutes = require('./routes/UserRoute');
 const musicRoutes = require('./routes/MusicRoute');
 const seedDatabase = require('./config/seed');
+const playlistRoutes = require('./routes/PlaylistRoute');
 const app = express();
 const PORT = process.env.PORT || 8585;
 
@@ -21,6 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/users', userRoutes);
 app.use('/music', musicRoutes);
+app.use('/playlists', playlistRoutes);
 
 sequelize.sync({ force: true })
   .then(async () => {
