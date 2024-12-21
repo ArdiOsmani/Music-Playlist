@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Header from './Header';
 import './Home.css';
 
 export default function Home() {
@@ -42,29 +43,32 @@ export default function Home() {
     if (error) return <div className="home-container">Error: {error}</div>;
 
     return (
-        <div className="home-container">
-            <h1>Music Library</h1>
-            <div className="music-grid">
-                {music.map((song) => (
-                    <div key={song.id} className="music-card">
-                        <h3>{song.name}</h3>
-                        <div className="video-container">
-                            <iframe
-                                width="280"
-                                height="157"
-                                src={`https://www.youtube.com/embed/${getYouTubeID(song.youtube_link)}`}
-                                title={song.name}
-                                frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            />
+        <>
+            <Header />
+            <div className="home-container">
+                <h1>Music Library</h1>
+                <div className="music-grid">
+                    {music.map((song) => (
+                        <div key={song.id} className="music-card">
+                            <h3>{song.name}</h3>
+                            <div className="video-container">
+                                <iframe
+                                    width="280"
+                                    height="157"
+                                    src={`https://www.youtube.com/embed/${getYouTubeID(song.youtube_link)}`}
+                                    title={song.name}
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                />
+                            </div>
+                            <p>Artist: {song.Artist?.username || 'Unknown'}</p>
+                            <p>Genre: {song.Genre?.name || 'Unknown'}</p>
+                            <p>Likes: {song.likes}</p>
                         </div>
-                        <p>Artist: {song.Artist?.username || 'Unknown'}</p>
-                        <p>Genre: {song.Genre?.name || 'Unknown'}</p>
-                        <p>Likes: {song.likes}</p>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
-        </div>
+        </>
     );
 }

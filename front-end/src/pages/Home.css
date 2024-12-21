@@ -1,7 +1,8 @@
 .home-container {
     background-color: #1a1a1a;
+    min-height: calc(100vh - 70px); /* Adjust for header height */
     padding: 20px;
-    color: white;
+    margin-top: 0;
 }
 
 .music-grid {

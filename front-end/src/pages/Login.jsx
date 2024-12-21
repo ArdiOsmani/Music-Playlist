@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import './Login.css';
+import storageService from '../services/storage';
 
 function Login() {
   const [isLoginView, setIsLoginView] = useState(true);
@@ -44,14 +45,17 @@ function Login() {
         }),
       });
 
-      console.log(response)
-
       const data = await response.json();
 
-      console.log(data)
-
       if (response.ok) {
-        console.log("Success", data);
+        // Store user data and token
+        storageService.setUserData({
+          id: data.id,
+          username: data.username,
+          role: data.role
+        });
+        storageService.setUserToken(data.token);
+        
         setLoginUsername("");
         setLoginPassword("");
         navigate("/home");
