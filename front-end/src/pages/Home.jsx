@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Header from './Header';
 import Navigation from '../components/Navigation';
+import PlaylistView from '../components/PlaylistView';
 import './Home.css';
 import storageService from '../services/storage';
 
@@ -141,21 +142,12 @@ export default function Home() {
                 <Navigation 
                     userPlaylists={userPlaylists} 
                     onPlaylistSelect={setSelectedPlaylist}
+                    onHomeClick={() => setSelectedPlaylist(null)}
                 />
                 <main className="content">
                     <Header />
                     {selectedPlaylist ? (
-                        <div className="playlist-view">
-                            <h2>{selectedPlaylist.name}</h2>
-                            <div className="music-grid">
-                                {selectedPlaylist.songs.map(song => (
-                                    /* Render playlist songs */
-                                    <div key={song.id} className="music-card">
-                                        {/* Same card content as above */}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        <PlaylistView playlist={selectedPlaylist} />
                     ) : (
                         <>
                             {renderMusicRow('New Releases', newReleases)}

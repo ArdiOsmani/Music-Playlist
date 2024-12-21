@@ -182,3 +182,21 @@ h1 {
 .save-to-playlist-btn:hover {
     background-color: #cc0000;
 }
+
+.playlist-view {
+    padding: 20px;
+}
+
+.playlist-view h2 {
+    color: white;
+    margin-bottom: 30px;
+    font-size: 24px;
+    padding-left: 20px;
+}
+
+.playlist-view .music-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 0 20px;
+}
