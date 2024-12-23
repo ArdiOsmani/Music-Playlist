@@ -3,7 +3,7 @@ const { Playlist, Music, User, Genre } = require('../models');
 exports.createPlaylist = async (req, res) => {
     try {
         const { name, songId } = req.body;
-        const userId = req.user.id; // From JWT token
+        const userId = req.user.id;
 
         const newPlaylist = await Playlist.create({
             name,
@@ -11,7 +11,7 @@ exports.createPlaylist = async (req, res) => {
             music_id: songId
         });
 
-        // Return the created playlist with included music details
+
         const playlistWithSongs = await Playlist.findOne({
             where: { id: newPlaylist.id },
             include: [{
