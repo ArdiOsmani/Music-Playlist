@@ -4,6 +4,7 @@ import Navigation from '../components/Navigation';
 import PlaylistView from '../components/PlaylistView';
 import './Home.css';
 import storageService from '../services/storage';
+import RenderMusic from '../components/RenderMusic';
 
 export default function Home() {
     const [music, setMusic] = useState([]);
@@ -14,6 +15,9 @@ export default function Home() {
     const [playlistName, setPlaylistName] = useState('');
     const [userPlaylists, setUserPlaylists] = useState([]);
     const [selectedPlaylist, setSelectedPlaylist] = useState(null);
+    const [newReleases, setNewReleases] = useState([]);
+    const [mostLiked, setMostLiked] = useState([]);
+    const [allSongs, setAllSongs] = useState([]);
 
     const getYouTubeID = (url) => {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -27,14 +31,18 @@ export default function Home() {
         const firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-        const fetchMusic = async () => {
+        const fetchAllMusicData = async () => {
             try {
-                const response = await fetch('http://localhost:8585/music');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch music');
-                }
-                const data = await response.json();
-                setMusic(data);
+                setLoading(true);
+                const [newReleasesData, mostLikedData, allSongsData] = await Promise.all([
+                    fetch('http://localhost:8585/music/new-releases').then(res => res.json()),
+                    fetch('http://localhost:8585/music/most-liked').then(res => res.json()),
+                    fetch('http://localhost:8585/music').then(res => res.json())
+                ]);
+
+                setNewReleases(newReleasesData);
+                setMostLiked(mostLikedData);
+                setAllSongs(allSongsData);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -42,7 +50,7 @@ export default function Home() {
             }
         };
 
-        fetchMusic();
+        fetchAllMusicData();
     }, []);
 
     const handleSaveToPlaylist = (song) => {
@@ -71,7 +79,6 @@ export default function Home() {
             if (response.ok) {
                 setShowPlaylistModal(false);
                 setPlaylistName('');
-                // Refresh the navigation to show the new playlist
                 await fetchUserPlaylists();
             }
         } catch (error) {
@@ -79,7 +86,6 @@ export default function Home() {
         }
     };
 
-    // Add this function to fetch user playlists
     const fetchUserPlaylists = async () => {
         try {
             const response = await fetch('http://localhost:8585/playlists', {
@@ -96,45 +102,8 @@ export default function Home() {
         }
     };
 
-    const renderMusicRow = (title, songs) => (
-        <div className="music-row">
-            <h2>{title}</h2>
-            <div className="music-grid">
-                {songs.map((song) => (
-                    <div key={song.id} className="music-card">
-                        <div className="video-container">
-                            <iframe
-                                width="280"
-                                height="157"
-                                src={`https://www.youtube.com/embed/${getYouTubeID(song.youtube_link)}`}
-                                title={song.name}
-                                frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            />
-                        </div>
-                        <h3>{song.name}</h3>
-                        <p>Artist: {song.Artist?.username || 'Unknown'}</p>
-                        <p>Genre: {song.Genre?.name || 'Unknown'}</p>
-                        <p>Likes: {song.likes}</p>
-                        <button 
-                            className="save-to-playlist-btn"
-                            onClick={() => handleSaveToPlaylist(song)}
-                        >
-                            Save to Playlist
-                        </button>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-
     if (loading) return <div className="home-container">Loading...</div>;
     if (error) return <div className="home-container">Error: {error}</div>;
-
-    const newReleases = music.slice(-4);
-    const mostLiked = [...music].sort((a, b) => b.likes - a.likes).slice(0, 4);
-    const allSongs = music;
 
     return (
         <div>
@@ -150,9 +119,21 @@ export default function Home() {
                         <PlaylistView playlist={selectedPlaylist} />
                     ) : (
                         <>
-                            {renderMusicRow('New Releases', newReleases)}
-                            {renderMusicRow('Most Liked', mostLiked)}
-                            {renderMusicRow('All Songs', allSongs)}
+                            <RenderMusic 
+                                title="New Releases" 
+                                songs={newReleases} 
+                                onSaveToPlaylist={handleSaveToPlaylist} 
+                            />
+                            <RenderMusic 
+                                title="Most Liked" 
+                                songs={mostLiked} 
+                                onSaveToPlaylist={handleSaveToPlaylist} 
+                            />
+                            <RenderMusic 
+                                title="All Songs" 
+                                songs={allSongs} 
+                                onSaveToPlaylist={handleSaveToPlaylist} 
+                            />
                         </>
                     )}
                 </main>
