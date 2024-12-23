@@ -33,7 +33,7 @@ export default function RenderMusic({ title, songs, onSaveToPlaylist }) {
                 {songs.map((song) => (
                     <div key={song.id} className="music-card">
                         <div className="video-container">
-                            {renderVideo(song.youtube_link)}
+                            song.youtube_link
                         </div>
                         <h3>{song.name} - {song.Artist.username}</h3>
                         <p>Genre: {song.Genre?.name || 'Unknown'}</p>
