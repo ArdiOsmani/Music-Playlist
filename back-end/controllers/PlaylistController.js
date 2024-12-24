@@ -60,7 +60,6 @@ exports.getUserPlaylists = async (req, res) => {
             }]
         });
 
-        // Group songs by playlist name
         const groupedPlaylists = playlists.reduce((acc, playlist) => {
             if (!acc[playlist.name]) {
                 acc[playlist.name] = {
@@ -103,6 +102,36 @@ exports.getUserPlaylistNames = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: 'Error fetching playlist names',
+            error: error.message
+        });
+    }
+};
+
+exports.deletePlaylistByName = async (req, res) => {
+    try {
+        const { name } = req.params;
+        const userId = req.user.id;
+
+        const deletedCount = await Playlist.destroy({
+            where: {
+                name: name,
+                user_id: userId
+            }
+        });
+
+        if (deletedCount > 0) {
+            res.status(200).json({ 
+                message: 'Playlist deleted successfully',
+                deletedCount
+            });
+        } else {
+            res.status(404).json({ 
+                message: 'Playlist not found or already deleted' 
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error deleting playlist',
             error: error.message
         });
     }
