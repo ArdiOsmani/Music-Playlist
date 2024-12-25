@@ -11,7 +11,6 @@ export default function AdminDashboard() {
     const [editMode, setEditMode] = useState(false);
     const navigate = useNavigate();
 
-    // Check if user is admin
     useEffect(() => {
         const userData = storageService.getUserData();
         if (!userData || userData.role !== 'admin') {
@@ -39,7 +38,7 @@ export default function AdminDashboard() {
     const handleEdit = (user) => {
         setSelectedUser({
             ...user,
-            password: '' // Clear password for security
+            password: '' 
         });
         setEditMode(true);
     };
@@ -47,22 +46,37 @@ export default function AdminDashboard() {
     const handleUpdate = async (e) => {
         e.preventDefault();
         try {
+
+            const updateData = {
+                username: selectedUser.username,
+                role: selectedUser.role || 'user' 
+            };
+            
+            console.log('Updating user:', selectedUser.id, 'with data:', updateData);
+
             const response = await fetch(`http://localhost:8585/users/${selectedUser.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${storageService.getUserToken()}`
                 },
-                body: JSON.stringify(selectedUser)
+                body: JSON.stringify(updateData)
             });
 
+            const data = await response.json();
+            
             if (response.ok) {
+                setUsers(prev => prev.map(user => 
+                    user.id === selectedUser.id ? {...user, ...updateData} : user
+                ));
                 setEditMode(false);
                 setSelectedUser(null);
-                fetchUsers();
+            } else {
+                throw new Error(data.message || 'Failed to update user');
             }
         } catch (error) {
             console.error('Error updating user:', error);
+            alert(error.message);
         }
     };
 

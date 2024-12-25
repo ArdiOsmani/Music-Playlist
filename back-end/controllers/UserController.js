@@ -1,26 +1,27 @@
-const { User } = require('../models');
+const { User, Music, Playlist, sequelize } = require('../models');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { Op } = require('sequelize');
 
 
 exports.createUser = async (req, res) => {
   try {
     const { username, password, role } = req.body;
     
-    // Check if user already exists
+
     const existingUser = await User.findOne({ where: { username } });
     if (existingUser) {
       return res.status(400).json({ message: 'Username already exists' });
     }
 
-    // Create new user
+
     const newUser = await User.create({ 
       username, 
       password, 
       role: role || 'user' 
     });
 
-    // Return user without password
+
     res.status(201).json({ 
       id: newUser.id, 
       username: newUser.username, 
@@ -72,37 +73,47 @@ exports.getUserById = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { username, password, role } = req.body;
+    const { username, role } = req.body;
 
-    // Find the user
+
     const user = await User.findByPk(id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Update user fields
-    if (username) user.username = username;
-    
-    // Only hash and update password if provided
-    if (password) {
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
+
+    if (username && username !== user.username) {
+      const existingUser = await User.findOne({ 
+        where: { 
+          username,
+          id: { [Op.ne]: id } 
+        }
+      });
+      if (existingUser) {
+        return res.status(400).json({ 
+          message: 'Username already exists' 
+        });
+      }
     }
-    
-    if (role) user.role = role;
 
-    // Save updated user
-    await user.save();
 
-    // Return updated user without password
-    res.status(200).json({ 
-      id: user.id, 
-      username: user.username, 
-      role: user.role 
+    const updates = {};
+    if (username) updates.username = username;
+    if (role) updates.role = role;
+
+    await user.update(updates);
+
+
+    res.status(200).json({
+      id: user.id,
+      username: user.username,
+      role: user.role
     });
+
   } catch (error) {
+    console.error('Update error:', error);
     res.status(500).json({ 
-      message: 'Error updating user', 
+      message: 'Error updating user',
       error: error.message 
     });
   }
@@ -113,16 +124,42 @@ exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Find the user
+
     const user = await User.findByPk(id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Delete the user
-    await user.destroy();
 
-    res.status(200).json({ message: 'User deleted successfully' });
+    const transaction = await sequelize.transaction();
+
+    try {
+
+      await Playlist.destroy({
+        where: { user_id: id },
+        transaction
+      });
+
+
+      await Music.destroy({
+        where: { artist_id: id },
+        transaction
+      });
+
+
+      await user.destroy({ transaction });
+
+
+      await transaction.commit();
+
+      res.status(200).json({ 
+        message: 'User and all associated data deleted successfully' 
+      });
+    } catch (error) {
+
+      await transaction.rollback();
+      throw error;
+    }
   } catch (error) {
     res.status(500).json({ 
       message: 'Error deleting user', 

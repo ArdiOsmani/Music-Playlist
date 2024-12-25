@@ -12,9 +12,7 @@ router.get('/', userController.getAllUsers);
 
 router.get('/:id', userController.getUserById);
 
-router.put('/users/:id', requireAuth, requireRole(['admin']), userController.updateUser);
-
-
+router.put('/:id', requireAuth, requireRole(['admin']), userController.updateUser);
 
 router.delete('/:id', requireAuth, requireRole(['admin']), userController.deleteUser);
 
