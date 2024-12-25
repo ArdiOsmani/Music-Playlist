@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import storageService from '../services/storage';
 import './Navigation.css';
 
 export default function Navigation({ onPlaylistSelect, onHomeClick }) {
     const [userPlaylists, setUserPlaylists] = useState([]);
     const [activePlaylist, setActivePlaylist] = useState(null);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const userData = storageService.getUserData();
+    const isAdmin = userData?.role === 'admin';
 
     useEffect(() => {
         fetchUserPlaylists();
@@ -31,22 +36,39 @@ export default function Navigation({ onPlaylistSelect, onHomeClick }) {
         onPlaylistSelect(playlist);
     };
 
-    const handleHomeClick = () => {
-        setActivePlaylist(null);
-        onHomeClick();
-    };
-
     return (
         <nav className="nav-sidebar">
             <div className="nav-section">
                 <h3>Menu</h3>
                 <ul>
                     <li 
-                        className={!activePlaylist ? 'active' : ''} 
-                        onClick={handleHomeClick}
+                        className={location.pathname === '/home' ? 'active' : ''} 
+                        onClick={() => navigate('/home')}
                     >
                         Home
                     </li>
+                    <li 
+                        className={location.pathname === '/dashboard' ? 'active' : ''} 
+                        onClick={() => navigate('/dashboard')}
+                    >
+                        Dashboard
+                    </li>
+                    {isAdmin && (
+                        <>
+                            <li 
+                                className={location.pathname === '/admin' ? 'active' : ''} 
+                                onClick={() => navigate('/admin')}
+                            >
+                                Admin
+                            </li>
+                            <li 
+                                className={location.pathname === '/logs' ? 'active' : ''} 
+                                onClick={() => navigate('/logs')}
+                            >
+                                Logs
+                            </li>
+                        </>
+                    )}
                 </ul>
             </div>
             {userPlaylists.length > 0 && (

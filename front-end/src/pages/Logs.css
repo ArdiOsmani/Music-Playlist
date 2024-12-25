@@ -1,0 +1,61 @@
+.logs-content {
+    padding: 20px;
+    color: white;
+}
+
+.logs-container {
+    background-color: #282828;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.logs-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.logs-table th,
+.logs-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+}
+
+.logs-table th {
+    background-color: #333;
+    color: white;
+}
+
+.logs-table tr:hover {
+    background-color: #333;
+}
+
+.logs-table td {
+    color: #ddd;
+}
+
+.logs-table tr[data-action="USER_REGISTRATION"] {
+    background-color: #1a237e;
+}
+
+.logs-table tr[data-action="UPDATE_USER"] {
+    background-color: #7c4f00;
+}
+
+.logs-table tr[data-action="DELETE_USER"] {
+    background-color: #7f1d1d;
+}
+
+.logs-table tr[data-action="USER_REGISTRATION"]:hover {
+    background-color: #283593;
+}
+
+.logs-table tr[data-action="UPDATE_USER"]:hover {
+    background-color: #976100;
+}
+
+.logs-table tr[data-action="DELETE_USER"]:hover {
+    background-color: #991f1f;
+}

@@ -3,6 +3,7 @@ const User = require('./User');
 const Genre = require('./Genre');
 const Music = require('./Music');
 const Playlist = require('./Playlist');
+const AdminLog = require('./AdminLog');
 
 const initializeAssociations = () => {
 
@@ -45,6 +46,18 @@ const initializeAssociations = () => {
     foreignKey: 'music_id',
     constraints: false 
   });
+
+  AdminLog.belongsTo(User, {
+    foreignKey: 'admin_id',
+    as: 'Admin',
+    constraints: false
+  });
+
+  AdminLog.belongsTo(User, {
+    foreignKey: 'target_user_id',
+    as: 'TargetUser',
+    constraints: false
+  });
 };
 
 initializeAssociations();
@@ -54,5 +67,6 @@ module.exports = {
   User,
   Genre,
   Music,
-  Playlist
+  Playlist,
+  AdminLog
 };

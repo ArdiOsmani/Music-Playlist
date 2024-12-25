@@ -104,23 +104,6 @@ export default function Home() {
 
     if (loading) return <div className="home-container">Loading...</div>;
     if (error) return <div className="home-container">Error: {error}</div>;
-
-    const fetchPlaylistNames = async () => {
-        try {
-            const response = await fetch('http://localhost:8585/playlists/names', {
-                headers: {
-                    'Authorization': `Bearer ${storageService.getUserToken()}`
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                console.log(data)
-            }
-        } catch (error) {
-            console.error('Error fetching playlist names:', error);
-        }
-    };
-
     return (
         <div>
             <div className="main-container">
@@ -132,7 +115,6 @@ export default function Home() {
                 <main className="content">
                     <Header />
 
-                    <button onClick={fetchPlaylistNames}>Hello</button>
                     {selectedPlaylist ? (
                         <PlaylistView playlist={selectedPlaylist} />
                     ) : (

@@ -4,6 +4,8 @@ const userController = require('../controllers/UserController');
 const { requireAuth, requireRole } = require('../middleware/JWTmiddleware');
 
 
+router.get('/admin-logs', requireAuth, requireRole(['admin']), userController.getAdminLogs);
+
 router.post('/', userController.createUser);
 
 router.post('/login', userController.loginUser);
