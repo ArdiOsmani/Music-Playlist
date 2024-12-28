@@ -1,7 +1,86 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import storageService from '../services/storage';
 import './RenderMusic.css';
 
 export default function RenderMusic({ title, songs, onSaveToPlaylist }) {
+    const [likedSongs, setLikedSongs] = useState(new Set());
+    const [localSongs, setLocalSongs] = useState(songs);
+
+    useEffect(() => {
+        setLocalSongs(songs);
+        fetchLikedSongs();
+    }, [songs]);
+
+    const fetchLikedSongs = async () => {
+        try {
+            const response = await fetch('http://localhost:8585/playlists', {
+                headers: {
+                    'Authorization': `Bearer ${storageService.getUserToken()}`
+                }
+            });
+            if (response.ok) {
+                const playlists = await response.json();
+                const likesPlaylist = playlists.find(p => p.name === 'Likes');
+                if (likesPlaylist) {
+                    const likedIds = new Set(likesPlaylist.songs.map(song => song.id));
+                    setLikedSongs(likedIds);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching liked songs:', error);
+        }
+    };
+
+    const handleLike = async (song) => {
+        try {
+            const isLiked = likedSongs.has(song.id);
+            if (isLiked) {
+                // Unlike: Delete from Likes playlist and decrease count
+                const response = await fetch(`http://localhost:8585/playlists/Likes`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${storageService.getUserToken()}`
+                    },
+                    body: JSON.stringify({ songId: song.id })
+                });
+
+                if (response.ok) {
+                    setLikedSongs(prev => {
+                        const newSet = new Set(prev);
+                        newSet.delete(song.id);
+                        return newSet;
+                    });
+                    setLocalSongs(prev => prev.map(s => 
+                        s.id === song.id ? { ...s, likes: s.likes - 1 } : s
+                    ));
+                }
+            } else {
+                // Like: Add to Likes playlist and increase count
+                const response = await fetch('http://localhost:8585/playlists', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${storageService.getUserToken()}`
+                    },
+                    body: JSON.stringify({
+                        name: 'Likes',
+                        songId: song.id
+                    })
+                });
+
+                if (response.ok) {
+                    setLikedSongs(prev => new Set([...prev, song.id]));
+                    setLocalSongs(prev => prev.map(s => 
+                        s.id === song.id ? { ...s, likes: s.likes + 1 } : s
+                    ));
+                }
+            }
+        } catch (error) {
+            console.error('Error toggling like:', error);
+        }
+    };
+
     const getYouTubeID = (url) => {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
         const match = url.match(regExp);
@@ -30,20 +109,27 @@ export default function RenderMusic({ title, songs, onSaveToPlaylist }) {
         <div className="music-row">
             <h2>{title}</h2>
             <div className="music-grid">
-                {songs.map((song) => (
+                {localSongs.map((song) => (
                     <div key={song.id} className="music-card">
                         <div className="video-container">
-                            song.youtube_link
+                            {renderVideo(song.youtube_link)}
                         </div>
                         <h3>{song.name} - {song.Artist.username}</h3>
                         <p>Genre: {song.Genre?.name || 'Unknown'}</p>
-                        <p>Likes: {song.likes}</p>
-                        <button 
-                            className="save-to-playlist-btn"
-                            onClick={() => onSaveToPlaylist(song)}
-                        >
-                            Save to Playlist
-                        </button>
+                        <div className="song-actions">
+                            <button 
+                                className={`like-btn ${likedSongs.has(song.id) ? 'liked' : ''}`}
+                                onClick={() => handleLike(song)}
+                            >
+                                {likedSongs.has(song.id) ? '❤️' : '🤍'} {song.likes}
+                            </button>
+                            <button 
+                                className="save-to-playlist-btn"
+                                onClick={() => onSaveToPlaylist(song)}
+                            >
+                                Save to Playlist
+                            </button>
+                        </div>
                     </div>
                 ))}
             </div>

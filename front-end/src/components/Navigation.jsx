@@ -33,7 +33,37 @@ export default function Navigation({ onPlaylistSelect, onHomeClick }) {
 
     const handlePlaylistClick = (playlist) => {
         setActivePlaylist(playlist.id);
-        onPlaylistSelect(playlist);
+        navigate(`/playlistpage?name=${playlist.name}`);
+    };
+
+    const handleLikesClick = async () => {
+        try {
+            const response = await fetch('http://localhost:8585/playlists', {
+                headers: {
+                    'Authorization': `Bearer ${storageService.getUserToken()}`
+                }
+            });
+            if (response.ok) {
+                const playlists = await response.json();
+                const likesPlaylist = playlists.find(p => p.name === 'Likes');
+                
+                if (likesPlaylist) {
+                    setActivePlaylist('likes');
+                    onPlaylistSelect({
+                        ...likesPlaylist,
+                        isLikedSongs: true
+                    });
+                } else {
+                    onPlaylistSelect({
+                        name: 'Likes',
+                        songs: [],
+                        isLikedSongs: true
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching likes playlist:', error);
+        }
     };
 
     return (
@@ -47,6 +77,7 @@ export default function Navigation({ onPlaylistSelect, onHomeClick }) {
                     >
                         Home
                     </li>
+
                     <li 
                         className={location.pathname === '/dashboard' ? 'active' : ''} 
                         onClick={() => navigate('/dashboard')}

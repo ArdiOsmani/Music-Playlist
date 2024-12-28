@@ -24,10 +24,18 @@ exports.createUser = async (req, res) => {
             return res.status(400).json({ message: 'Username already exists' });
         }
 
+
         const newUser = await User.create({ 
             username, 
             password, 
             role: role || 'user' 
+        }, { transaction });
+
+
+        await Playlist.create({
+            name: 'Likes',
+            user_id: newUser.id,
+            music_id: null
         }, { transaction });
 
         await createAdminLog(
