@@ -28,7 +28,7 @@ exports.createUser = async (req, res) => {
         const newUser = await User.create({ 
             username, 
             password, 
-            role: role || 'artist' 
+            role: role || 'user' 
         }, { transaction });
 
 
