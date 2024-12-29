@@ -33,48 +33,29 @@ export default function RenderMusic({ title, songs, onSaveToPlaylist }) {
 
     const handleLike = async (song) => {
         try {
-            const isLiked = likedSongs.has(song.id);
-            if (isLiked) {
-                // Unlike: Delete from Likes playlist and decrease count
-                const response = await fetch(`http://localhost:8585/playlists/Likes`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${storageService.getUserToken()}`
-                    },
-                    body: JSON.stringify({ songId: song.id })
-                });
+            const response = await fetch(`http://localhost:8585/music/${song.id}/toggle-like`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${storageService.getUserToken()}`
+                }
+            });
 
-                if (response.ok) {
-                    setLikedSongs(prev => {
-                        const newSet = new Set(prev);
+            if (response.ok) {
+                const data = await response.json();
+                setLikedSongs(prev => {
+                    const newSet = new Set(prev);
+                    if (data.liked) {
+                        newSet.add(song.id);
+                    } else {
                         newSet.delete(song.id);
-                        return newSet;
-                    });
-                    setLocalSongs(prev => prev.map(s => 
-                        s.id === song.id ? { ...s, likes: s.likes - 1 } : s
-                    ));
-                }
-            } else {
-                // Like: Add to Likes playlist and increase count
-                const response = await fetch('http://localhost:8585/playlists', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${storageService.getUserToken()}`
-                    },
-                    body: JSON.stringify({
-                        name: 'Likes',
-                        songId: song.id
-                    })
+                    }
+                    return newSet;
                 });
-
-                if (response.ok) {
-                    setLikedSongs(prev => new Set([...prev, song.id]));
-                    setLocalSongs(prev => prev.map(s => 
-                        s.id === song.id ? { ...s, likes: s.likes + 1 } : s
-                    ));
-                }
+                
+                // Update local song likes count
+                setLocalSongs(prev => prev.map(s => 
+                    s.id === song.id ? { ...s, likes: data.likes } : s
+                ));
             }
         } catch (error) {
             console.error('Error toggling like:', error);

@@ -1,4 +1,4 @@
-const { Music, User, Genre } = require('../models/index');
+const { Music, User, Genre, Playlist, sequelize } = require('../models/index');
 const { Op } = require('sequelize');
 
 
@@ -175,6 +175,103 @@ exports.getAllMusic = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: 'Error fetching music',
+            error: error.message
+        });
+    }
+};
+
+// Add this new controller method
+exports.toggleLike = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    try {
+        const { id } = req.params; // music id
+        const userId = req.user.id;
+
+        // Find the music
+        const music = await Music.findByPk(id, { transaction });
+        if (!music) {
+            await transaction.rollback();
+            return res.status(404).json({ message: 'Music not found' });
+        }
+
+        // Check if user already liked this music
+        const existingLike = await Playlist.findOne({
+            where: {
+                user_id: userId,
+                music_id: id,
+                name: 'Likes'
+            },
+            transaction
+        });
+
+        if (existingLike) {
+            // Unlike: Remove from Likes playlist and decrease count
+            await existingLike.destroy({ transaction });
+            music.likes = Math.max(0, music.likes - 1);
+            await music.save({ transaction });
+
+            await transaction.commit();
+            res.json({ 
+                liked: false, 
+                likes: music.likes 
+            });
+        } else {
+            // Like: Add to Likes playlist and increase count
+            await Playlist.create({
+                name: 'Likes',
+                user_id: userId,
+                music_id: id
+            }, { transaction });
+
+            music.likes = (music.likes || 0) + 1;
+            await music.save({ transaction });
+
+            await transaction.commit();
+            res.json({ 
+                liked: true, 
+                likes: music.likes 
+            });
+        }
+    } catch (error) {
+        await transaction.rollback();
+        res.status(500).json({
+            message: 'Error toggling like',
+            error: error.message
+        });
+    }
+};
+
+// Add this method to check if user liked songs
+exports.getUserLikedSongs = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        
+        const likedSongs = await Playlist.findAll({
+            where: {
+                user_id: userId,
+                name: 'Likes'
+            },
+            include: [{
+                model: Music,
+                include: [
+                    {
+                        model: User,
+                        as: 'Artist',
+                        attributes: ['username']
+                    },
+                    {
+                        model: Genre,
+                        attributes: ['name']
+                    }
+                ]
+            }]
+        });
+
+        const songs = likedSongs.map(like => like.Music);
+        res.json(songs);
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error fetching liked songs',
             error: error.message
         });
     }
