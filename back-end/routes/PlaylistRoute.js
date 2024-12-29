@@ -7,5 +7,6 @@ router.post('/', requireAuth, playlistController.createPlaylist);
 router.get('/', requireAuth, playlistController.getUserPlaylists);
 router.get('/names', requireAuth, playlistController.getUserPlaylistNames);
 router.delete('/:name', requireAuth, playlistController.deletePlaylistByName);
+router.delete('/:name/songs/:musicId', requireAuth, playlistController.removeSongFromPlaylist);
 
 module.exports = router;

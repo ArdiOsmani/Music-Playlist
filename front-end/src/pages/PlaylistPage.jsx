@@ -36,6 +36,63 @@ export default function PlaylistPage() {
         }
     };
 
+    const handleDeleteSong = async (musicId) => {
+        if (!window.confirm('Are you sure you want to remove this song?')) return;
+        
+        try {
+            if (playlist.name === 'Likes') {
+                const response = await fetch(`http://localhost:8585/music/${musicId}/toggle-like`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${storageService.getUserToken()}`
+                    }
+                });
+
+                if (response.ok) {
+                    setPlaylist(prev => ({
+                        ...prev,
+                        songs: prev.songs.filter(song => song.id !== musicId)
+                    }));
+                }
+            } else {
+                const response = await fetch(`http://localhost:8585/playlists/${playlist.name}/songs/${musicId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${storageService.getUserToken()}`
+                    }
+                });
+
+                if (response.ok) {
+                    setPlaylist(prev => ({
+                        ...prev,
+                        songs: prev.songs.filter(song => song.id !== musicId)
+                    }));
+                }
+            }
+        } catch (error) {
+            console.error('Error removing song:', error);
+        }
+    };
+
+    const handleDeletePlaylist = async () => {
+        if (!window.confirm('Are you sure you want to delete this entire playlist?')) return;
+        
+        try {
+            const response = await fetch(`http://localhost:8585/playlists/${playlist.name}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${storageService.getUserToken()}`
+                }
+            });
+
+            if (response.ok) {
+                navigate('/home');
+            }
+        } catch (error) {
+            console.error('Error deleting playlist:', error);
+        }
+    };
+
     const renderVideo = (url) => {
         if (!url) return <div className="video-error">Invalid video URL</div>;
         return (
@@ -61,7 +118,17 @@ export default function PlaylistPage() {
                     <div className="playlists-content">
                         {playlist ? (
                             <>
-                                <h2>{playlist.name}</h2>
+                                <div className="playlist-header">
+                                    <h2>{playlist.name}</h2>
+                                    {playlist.name !== 'Likes' && (
+                                        <button 
+                                            className="delete-playlist-btn"
+                                            onClick={handleDeletePlaylist}
+                                        >
+                                            Delete Playlist
+                                        </button>
+                                    )}
+                                </div>
                                 <div className="songs-grid">
                                     {playlist.songs.map(song => (
                                         <div key={song.id} className="song-card">
@@ -73,6 +140,12 @@ export default function PlaylistPage() {
                                                 <p>Artist: {song.Artist?.username || 'Unknown'}</p>
                                                 <p>Genre: {song.Genre?.name || 'Unknown'}</p>
                                                 <p>Likes: {song.likes}</p>
+                                                <button 
+                                                    className="remove-song-btn"
+                                                    onClick={() => handleDeleteSong(song.id)}
+                                                >
+                                                    Remove from Playlist
+                                                </button>
                                             </div>
                                         </div>
                                     ))}

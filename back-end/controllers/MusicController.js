@@ -180,21 +180,19 @@ exports.getAllMusic = async (req, res) => {
     }
 };
 
-// Add this new controller method
 exports.toggleLike = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
-        const { id } = req.params; // music id
+        const { id } = req.params;
         const userId = req.user.id;
 
-        // Find the music
+
         const music = await Music.findByPk(id, { transaction });
         if (!music) {
             await transaction.rollback();
             return res.status(404).json({ message: 'Music not found' });
         }
 
-        // Check if user already liked this music
         const existingLike = await Playlist.findOne({
             where: {
                 user_id: userId,
@@ -205,7 +203,6 @@ exports.toggleLike = async (req, res) => {
         });
 
         if (existingLike) {
-            // Unlike: Remove from Likes playlist and decrease count
             await existingLike.destroy({ transaction });
             music.likes = Math.max(0, music.likes - 1);
             await music.save({ transaction });
@@ -216,7 +213,6 @@ exports.toggleLike = async (req, res) => {
                 likes: music.likes 
             });
         } else {
-            // Like: Add to Likes playlist and increase count
             await Playlist.create({
                 name: 'Likes',
                 user_id: userId,
@@ -241,7 +237,6 @@ exports.toggleLike = async (req, res) => {
     }
 };
 
-// Add this method to check if user liked songs
 exports.getUserLikedSongs = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -272,6 +267,77 @@ exports.getUserLikedSongs = async (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: 'Error fetching liked songs',
+            error: error.message
+        });
+    }
+};
+
+exports.deletePlaylistByName = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    try {
+        const { name } = req.params;
+        const userId = req.user.id;
+
+        const deletedCount = await Playlist.destroy({
+            where: {
+                name: name,
+                user_id: userId
+            },
+            transaction
+        });
+
+        await transaction.commit();
+
+        if (deletedCount > 0) {
+            res.status(200).json({ 
+                message: 'Playlist deleted successfully',
+                deletedCount
+            });
+        } else {
+            res.status(404).json({ 
+                message: 'Playlist not found or already deleted' 
+            });
+        }
+    } catch (error) {
+        await transaction.rollback();
+        res.status(500).json({
+            message: 'Error deleting playlist',
+            error: error.message
+        });
+    }
+};
+
+
+exports.removeSongFromPlaylist = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    try {
+        const { name, musicId } = req.params;
+        const userId = req.user.id;
+
+        const deletedCount = await Playlist.destroy({
+            where: {
+                name: name,
+                user_id: userId,
+                music_id: musicId
+            },
+            transaction
+        });
+
+        await transaction.commit();
+
+        if (deletedCount > 0) {
+            res.status(200).json({
+                message: 'Song removed from playlist successfully'
+            });
+        } else {
+            res.status(404).json({
+                message: 'Song not found in playlist'
+            });
+        }
+    } catch (error) {
+        await transaction.rollback();
+        res.status(500).json({
+            message: 'Error removing song from playlist',
             error: error.message
         });
     }

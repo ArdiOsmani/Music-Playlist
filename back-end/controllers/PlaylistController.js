@@ -1,4 +1,4 @@
-const { Playlist, Music, User, Genre } = require('../models');
+const { Playlist, Music, User, Genre, sequelize } = require('../models');
 
 exports.createPlaylist = async (req, res) => {
     try {
@@ -108,6 +108,7 @@ exports.getUserPlaylistNames = async (req, res) => {
 };
 
 exports.deletePlaylistByName = async (req, res) => {
+    const transaction = await sequelize.transaction();
     try {
         const { name } = req.params;
         const userId = req.user.id;
@@ -116,8 +117,11 @@ exports.deletePlaylistByName = async (req, res) => {
             where: {
                 name: name,
                 user_id: userId
-            }
+            },
+            transaction
         });
+
+        await transaction.commit();
 
         if (deletedCount > 0) {
             res.status(200).json({ 
@@ -130,8 +134,44 @@ exports.deletePlaylistByName = async (req, res) => {
             });
         }
     } catch (error) {
+        await transaction.rollback();
         res.status(500).json({
             message: 'Error deleting playlist',
+            error: error.message
+        });
+    }
+};
+
+exports.removeSongFromPlaylist = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    try {
+        const { name, musicId } = req.params;
+        const userId = req.user.id;
+
+        const deletedCount = await Playlist.destroy({
+            where: {
+                name: name,
+                user_id: userId,
+                music_id: musicId
+            },
+            transaction
+        });
+
+        await transaction.commit();
+
+        if (deletedCount > 0) {
+            res.status(200).json({
+                message: 'Song removed from playlist successfully'
+            });
+        } else {
+            res.status(404).json({
+                message: 'Song not found in playlist'
+            });
+        }
+    } catch (error) {
+        await transaction.rollback();
+        res.status(500).json({
+            message: 'Error removing song from playlist',
             error: error.message
         });
     }
