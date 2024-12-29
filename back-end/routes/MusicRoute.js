@@ -13,6 +13,7 @@ router.get('/most-liked', musicController.getMostLikedMusic);
 router.get('/new-releases', musicController.getNewReleases);
 router.get('/user', requireAuth, musicController.getUserMusic);
 router.post('/', requireAuth, musicController.createMusic);
+router.put('/:id', requireAuth, musicController.updateMusic);
 router.delete('/:id', requireAuth, musicController.deleteMusic);
 
 module.exports = router;

@@ -342,3 +342,60 @@ exports.removeSongFromPlaylist = async (req, res) => {
         });
     }
 };
+
+exports.updateMusic = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    try {
+        const { id } = req.params;
+        const { name, youtube_link, genre_id } = req.body;
+        const userId = req.user.id;
+
+        const music = await Music.findOne({
+            where: {
+                id: id,
+                artist_id: userId
+            },
+            transaction
+        });
+
+        if (!music) {
+            await transaction.rollback();
+            return res.status(404).json({
+                message: 'Music not found or unauthorized to update'
+            });
+        }
+
+
+        await music.update({
+            name: name || music.name,
+            youtube_link: youtube_link || music.youtube_link,
+            genre_id: genre_id || music.genre_id
+        }, { transaction });
+
+
+        const updatedMusic = await Music.findByPk(music.id, {
+            include: [
+                {
+                    model: User,
+                    as: 'Artist',
+                    attributes: ['username']
+                },
+                {
+                    model: Genre,
+                    attributes: ['name']
+                }
+            ],
+            transaction
+        });
+
+        await transaction.commit();
+        res.status(200).json(updatedMusic);
+
+    } catch (error) {
+        await transaction.rollback();
+        res.status(500).json({
+            message: 'Error updating music',
+            error: error.message
+        });
+    }
+};

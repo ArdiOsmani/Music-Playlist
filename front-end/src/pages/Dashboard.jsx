@@ -13,6 +13,8 @@ export default function Dashboard() {
     const [userMusic, setUserMusic] = useState([]);
     const [genres, setGenres] = useState([]);
     const [selectedPlaylist, setSelectedPlaylist] = useState(null);
+    const [editMode, setEditMode] = useState(false);
+    const [editingMusic, setEditingMusic] = useState(null);
 
     useEffect(() => {
         fetchUserMusic();
@@ -81,6 +83,42 @@ export default function Dashboard() {
         }
     };
 
+    const handleEdit = (music) => {
+        setEditingMusic(music);
+        setEditMode(true);
+        setNewMusic({
+            name: music.name,
+            youtube_link: music.youtube_link,
+            genre_id: music.genre_id
+        });
+    };
+
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetch(`http://localhost:8585/music/${editingMusic.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${storageService.getUserToken()}`
+                },
+                body: JSON.stringify(newMusic)
+            });
+
+            if (response.ok) {
+                const updatedMusic = await response.json();
+                setUserMusic(prev => prev.map(music => 
+                    music.id === editingMusic.id ? updatedMusic : music
+                ));
+                setEditMode(false);
+                setEditingMusic(null);
+                setNewMusic({ name: '', youtube_link: '', genre_id: '' });
+            }
+        } catch (error) {
+            console.error('Error updating music:', error);
+        }
+    };
+
     return (
         <div className="dashboard-container">
             <div className="main-container">
@@ -92,8 +130,8 @@ export default function Dashboard() {
                     <Header />
                     <div className="dashboard-content">
                         <section className="add-music-section">
-                            <h2>Add New Music</h2>
-                            <form onSubmit={handleSubmit} className="music-form">
+                            <h2>{editMode ? 'Update Music' : 'Add New Music'}</h2>
+                            <form onSubmit={editMode ? handleUpdate : handleSubmit} className="music-form">
                                 <div className="form-group">
                                     <label htmlFor="name">Song Name</label>
                                     <input
@@ -133,7 +171,24 @@ export default function Dashboard() {
                                         <option value="5">Hip Hop</option>
                                     </select>
                                 </div>
-                                <button type="submit" className="submit-btn">Add Music</button>
+                                <div className="form-buttons">
+                                    <button type="submit" className="submit-btn">
+                                        {editMode ? 'Update Music' : 'Add Music'}
+                                    </button>
+                                    {editMode && (
+                                        <button 
+                                            type="button" 
+                                            className="cancel-btn"
+                                            onClick={() => {
+                                                setEditMode(false);
+                                                setEditingMusic(null);
+                                                setNewMusic({ name: '', youtube_link: '', genre_id: '' });
+                                            }}
+                                        >
+                                            Cancel
+                                        </button>
+                                    )}
+                                </div>
                             </form>
                         </section>
 
@@ -160,6 +215,12 @@ export default function Dashboard() {
                                             className="delete-btn"
                                         >
                                             Delete
+                                        </button>
+                                        <button 
+                                            onClick={() => handleEdit(music)}
+                                            className="edit-btn"
+                                        >
+                                            Edit
                                         </button>
                                     </div>
                                 ))}
