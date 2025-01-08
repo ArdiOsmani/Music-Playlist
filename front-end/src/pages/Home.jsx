@@ -53,8 +53,13 @@ export default function Home() {
         fetchAllMusicData();
     }, []);
 
-    const handleSaveToPlaylist = (song) => {
+    useEffect(() => {
+        fetchUserPlaylists();
+    }, []);
+
+    const handleSaveToPlaylist = async (song) => {
         setSelectedSong(song);
+        await fetchUserPlaylists(); // Add this line
         setShowPlaylistModal(true);
     };
 
@@ -88,18 +93,29 @@ export default function Home() {
 
     const fetchUserPlaylists = async () => {
         try {
-            const response = await fetch('http://localhost:8585/playlists', {
+            const response = await fetch('http://localhost:8585/playlists/names', {
                 headers: {
                     'Authorization': `Bearer ${storageService.getUserToken()}`
                 }
             });
             if (response.ok) {
                 const data = await response.json();
+                console.log('Fetched playlists:', data); 
                 setUserPlaylists(data);
             }
         } catch (error) {
             console.error('Error fetching playlists:', error);
         }
+    };
+
+    const handleInputChange = (e) => {
+        const value = e.target.value;
+        if (value.toLowerCase().match(/^likes?$/)) {
+            setPlaylistName('');
+            alert('Cannot create playlist named "Likes" - this is a reserved playlist name');
+            return;
+        }
+        setPlaylistName(value);
     };
 
     if (loading) return <div className="home-container">Loading...</div>;
@@ -147,11 +163,39 @@ export default function Home() {
                             type="text"
                             placeholder="Playlist name"
                             value={playlistName}
-                            onChange={(e) => setPlaylistName(e.target.value)}
+                            onChange={handleInputChange}
                         />
+                        {userPlaylists.length > 0 && (
+                            <div className="existing-playlists">
+                                <h4>Or add to existing playlist:</h4>
+                                <div className="playlist-list">
+                                    {userPlaylists
+                                        .filter(playlist => playlist.name !== 'Likes')
+                                        .map(playlist => (
+                                            <button
+                                                key={playlist.id}
+                                                className="playlist-option"
+                                                onClick={() => setPlaylistName(playlist.name)}
+                                            >
+                                                {playlist.name}
+                                            </button>
+                                        ))}
+                                </div>
+                            </div>
+                        )}
                         <div className="modal-buttons">
-                            <button onClick={handleCreatePlaylist}>Create</button>
-                            <button onClick={() => setShowPlaylistModal(false)}>Cancel</button>
+                            <button onClick={handleCreatePlaylist}>
+                                {playlistName && userPlaylists.some(p => p.name === playlistName) 
+                                    ? 'Add to Playlist' 
+                                    : 'Create Playlist'
+                                }
+                            </button>
+                            <button onClick={() => {
+                                setShowPlaylistModal(false);
+                                setPlaylistName('');
+                            }}>
+                                Cancel
+                            </button>
                         </div>
                     </div>
                 </div>

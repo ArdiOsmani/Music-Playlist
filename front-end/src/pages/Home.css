@@ -128,7 +128,8 @@ h1 {
     background-color: #282828;
     padding: 20px;
     border-radius: 8px;
-    width: 300px;
+    width: 350px;
+    max-width: 90vw;
 }
 
 .playlist-modal h3 {
@@ -199,4 +200,39 @@ h1 {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 20px;
     padding: 0 20px;
+}
+
+.existing-playlists {
+    margin: 15px 0;
+    padding: 10px 0;
+    border-top: 1px solid #444;
+}
+
+.existing-playlists h4 {
+    color: white;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.playlist-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.playlist-option {
+    background-color: #333;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.3s;
+}
+
+.playlist-option:hover {
+    background-color: #444;
 }

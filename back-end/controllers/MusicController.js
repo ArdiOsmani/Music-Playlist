@@ -399,3 +399,26 @@ exports.updateMusic = async (req, res) => {
         });
     }
 };
+
+exports.getUserPlaylistNames = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const playlists = await Playlist.findAll({
+            where: { user_id: userId },
+            attributes: ['id', 'name'],
+            group: ['name']
+        });
+
+        const uniquePlaylistNames = [...new Set(playlists.map(playlist => ({
+            id: playlist.id,
+            name: playlist.name
+        })))];
+
+        res.status(200).json(uniquePlaylistNames);
+    } catch (error) {
+        res.status(500).json({
+            message: 'Error fetching playlist names',
+            error: error.message
+        });
+    }
+};
